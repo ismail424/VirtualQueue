@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center p-10 bg-gray-100">
+    <!-- If there are students in the list -->
+    {% if all_students|length > 0 %}
+        <ul class="w-full max-w-3xl">
+            {% for student in all_students %}
+                <li class="flex flex-col items-start justify-between p-6 mb-4 bg-white shadow-lg rounded-lg {% if loop.first %}bg-green-100 border-4 border-green-500 text-4xl{% else %}text-3xl{% endif %}">
+                    <span class="font-bold text-gray-700 {% if loop.first %}text-green-600{% endif %}">{{ loop.index }}. {{ student }}</span>
+                    {% if loop.first %}
+                        <span class="text-lg text-gray-500 mt-2">Det är din tur</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <!-- If there are no students -->
+        <div class="text-4xl font-bold text-red-600" id="error-message">
+            Inga studenter hittades
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Assuming you have the socket.io setup in your base.html
+    function handleQueueUpdate(data) {
+        // Update the list of students based on the new data
+        const studentList = document.querySelector('ul');
+        studentList.innerHTML = ''; // Clear the current list
+
+        if (data.length > 0) {
+            if (document.querySelector('#error-message')){
+                document.querySelector('#error-message').remove();
+            }
+            data.forEach((student, index) => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('flex', 'flex-col', 'items-start', 'justify-between', 'p-6', 'mb-4', 'bg-white', 'shadow-lg', 'rounded-lg');
+                if (index === 0) {
+                    listItem.classList.add('bg-green-100', 'border-4', 'border-green-500', 'text-4xl');
+                } else {
+                    listItem.classList.add('text-3xl');
+                }
+
+                const studentName = document.createElement('span');
+                studentName.classList.add('font-bold', 'text-gray-700');
+                if (index === 0) {
+                    studentName.classList.add('text-green-600');
+                }
+                studentName.textContent = (index + 1) + ". " + student.name;
+
+                listItem.appendChild(studentName);
+
+                if (index === 0) {
+                    const turnText = document.createElement('span');
+                    turnText.classList.add('text-lg', 'text-green-500', 'mt-2');
+                    turnText.textContent = "Det är din tur";
+                    listItem.appendChild(turnText);
+                }
+
+                studentList.appendChild(listItem);
+            });
+        } else {
+            const errorMessage = document.createElement('div');
+            errorMessage.classList.add('text-4xl', 'font-bold', 'text-red-600');
+            errorMessage.id = 'error-message';
+            errorMessage.textContent = 'Inga studenter hittades';
+            studentList.parentElement.appendChild(errorMessage);
+        }
+
+    }
+</script>
+{% endblock %}

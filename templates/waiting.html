@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="flex mt-10  items-center justify-start bg-gray-100 pt-10">
+    <!-- Waiting Info -->
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-auto">
+        <h2 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
+            <span class="text-blue-600 dark:text-blue-500">Kö</span> Information
+        </h2>
+        <hr class="border-gray-300 my-2">
+        <p class=" text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">
+            Namn: 
+            <span class="font-bold text-gray-800 text-2xl">{{ name }} </span>
+        </p>
+        <p class="mb-4 text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">
+            Din nuvarande position är: 
+            <span class="font-bold text-gray-800 text-2xl" id="currentPosition">{{ position }}</span>
+        </p>
+
+        {% if (students_ahead|length) > 0 %}
+            <h3 class="text-2xl mt-4 mb-2 font-bold" id="studentsAheadListTitle">Studenter framför dig:</h3>
+            <ul id="studentsAheadList" class="list-decimal pl-5 text-xl font-normal text-gray-500 lg:text-xl dark:text-gray-400">
+            {% for student in students_ahead %}
+                <li class="mb-2">{{ student.name }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+        <div class="bg-green-100 rounded-md p-3 flex" id="firstInQueue" style="{{ 'display: none;' if (students_ahead|length) > 0 else '' }}">
+            <svg
+                class="stroke-2 stroke-current text-green-600 h-8 w-8 mr-2 flex-shrink-0"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            >
+                <path d="M0 0h24v24H0z" stroke="none" />
+                <circle cx="12" cy="12" r="9" />
+                <path d="M9 12l2 2 4-4" />
+            </svg>
+        
+            <div class="text-green-700">
+                <div class="font-bold text-lg">Det är din tur!</div>
+            </div>
+        </div>
+        
+
+        <form action="/leave" method="post" class="mt-6 w-full">
+            <input type="submit" value="Lämna Kö" class="w-full text-xl text-white font-bold bg-red-500 px-6 py-4 rounded-lg shadow hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer">
+        </form>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    function handleQueueUpdate(data) {
+        var position = data.findIndex(student => student.name === "{{ name }}") + 1;
+
+        // if you are the student that is being removed
+        if (position == 0) {
+            window.location.href = "/leave";
+        }
+
+        // Update the displayed position
+        document.getElementById("currentPosition").innerText = position;
+        
+        // if you are first in line
+        if (position == 1) {
+            document.getElementById("studentsAheadListTitle").style.display = "none";
+            document.getElementById("studentsAheadList").style.display = "none";
+            document.getElementById("firstInQueue").style.display = "flex";
+            return;
+        }
+
+        // Update the list of students ahead
+        var studentsAheadList = document.getElementById("studentsAheadList");
+        studentsAheadList.innerHTML = "";  // Clear the current list
+        for (var i = 0; i < position - 1; i++) {
+            var listItem = document.createElement("li");
+            listItem.textContent = data[i].name;
+            studentsAheadList.appendChild(listItem);
+        }
+    }
+</script>
+
+{% endblock %}

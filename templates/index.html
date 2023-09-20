@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="flex mt-10 items-center justify-start bg-gray-100 pt-10 ">
+    <!-- Student Form -->
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-auto">
+        <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
+            <span class="text-blue-600 dark:text-blue-500">Kö</span> lista för studenter</h1>
+        <hr class="border-gray-300 my-4">        
+        <p id="currentQueueCount" class="mb-2 text-lg font-normal text-gray-500 lg:text-xl  dark:text-gray-400">
+            <span class="font-bold text-gray-800" id="queueLength">
+                {{ queue_length }}
+            </span>
+             studenter för närvarande i kön
+        </p>
+        <form id="joinForm" action="/join" method="post" class="text-2xl flex flex-col items-center">
+            <div class="mb-4 w-full">
+                <p class="mb-1 text-lg font-normal text-gray-500 lg:text-xl  dark:text-gray-400">Ange ditt namn för att gå med i kön:</p>
+                <input type="text" id="name" name="name" placeholder="Namn" maxlength="20" minlength="1" required class="w-full border-2 p-4 rounded-lg transition duration-300 ease-in-out hover:border-blue-400 focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+            </div>
+            <div class="w-full">
+                <input type="submit" value="Gå med i kön" class="w-full text-xl text-white font-bold bg-blue-500 text-white px-6 py-4 rounded-lg shadow hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer">
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function handleQueueUpdate(data) {
+        document.getElementById("queueLength").innerText = data.length;
+    }
+
+    // Disable form submission if the name is empty
+    let button = document.querySelector("#joinForm input[type=submit]");
+    const studentName = sessionStorage.getItem("studentName");
+    if (studentName) {
+        button.disabled = false;
+        button.classList.remove("opacity-50");
+    } else {
+        button.disabled = true;
+        button.classList.add("opacity-50");
+    }
+
+    document.querySelector("#name").addEventListener("input", function() {
+        // ^([A-Za-z]+[,.]?[ ]?|[A-Za-z]+['-]?)+$
+        // check if the name is valid
+        const regex = new RegExp("^([A-Za-z]+[,.]?[ ]?|[A-Za-z]+['-]?)+$");
+        if (!regex.test(this.value)) {
+            this.setCustomValidity("Invalid name");
+            return;
+        } else {
+            this.setCustomValidity("");
+        }
+        if (this.value.length > 0) {
+            button.disabled = false;
+            button.classList.remove("opacity-50");
+        } else {
+            button.disabled = true;
+            button.classList.add("opacity-50");
+        }
+        sessionStorage.setItem("studentName", this.value);
+    });
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const studentName = sessionStorage.getItem("studentName");
+        if (studentName) {
+            document.querySelector("#name").value = studentName;
+        }
+    });
+</script>
+
+{% endblock %}

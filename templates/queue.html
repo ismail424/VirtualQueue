@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex mt-10  items-center justify-start bg-gray-100 pt-10">
+    <!-- Kö Information -->
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-auto">
+        <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
+            Aktuell Kö
+        </h1>
+        <hr class="border-gray-300 my-4">
+        
+        <p class="text-lg font-normal text-gray-700 lg:text-xl dark:text-gray-400 no-students-message" style="{{ 'display: none;' if (queue|length) != 0 else '' }}">Det finns inga studenter i kön just nu.</p>
+        
+        <div id="firstInQueue" style="{{ 'display: none;' if (queue|length) == 0 else '' }}">
+            <p class="mb-4 text-lg font-normal text-gray-700 lg:text-xl dark:text-gray-400">Nuvarande kö:</p>
+            <ul>
+                {% for student in queue %}
+                <li class="flex justify-between items-center p-2 mb-4 {% if loop.first %}bg-blue-100 p-2 rounded{% endif %} transition duration-300 ease-in-out hover:bg-gray-100">
+                    <span class="text-lg font-normal text-gray-700 lg:text-xl dark:text-gray-400">{{ loop.index }}. {{ student.name }}</span>
+                        <form action="/remove_student" method="post" class="ml-4">
+                            <input type="hidden" name="student_name" value="{{ student.name }}">
+                            <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded transition duration-300 ease-in-out hover:bg-red-600">Ta bort</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+            
+    </div>
+</div>
+
+<div class="flex items-center justify-center mt-6">
+    <form action="/clear_queue" method="post">
+        <input type="submit" value="Rensa hela kön" class="bg-red-500 text-white px-6 py-3 rounded-lg shadow hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer">
+    </form>
+</div>
+
+<script>
+    function handleQueueUpdate(data) {
+        // Check if the queue is empty
+        var isEmpty = data.length === 0;
+
+        // Toggle visibility of the "no students" message
+        var noStudentsMessage = document.querySelector('.no-students-message');
+        noStudentsMessage.style.display = isEmpty ? 'block' : 'none';
+
+        // Toggle visibility of the queue list
+        var firstInQueueDiv = document.getElementById('firstInQueue');
+        firstInQueueDiv.style.display = isEmpty ? 'none' : 'block';
+
+        // Update the list of students
+        var queueList = firstInQueueDiv.querySelector('ul');
+        queueList.innerHTML = ''; // Clear the current list
+        data.forEach(function(student, index) {
+            var listItem = document.createElement('li');
+            listItem.className = 'flex justify-between items-center p-2 mb-4 transition duration-300 ease-in-out hover:bg-gray-100';
+            if (index === 0) {
+                listItem.classList.add('bg-blue-100', 'p-2', 'rounded');
+            }
+            listItem.innerHTML = `
+                <span class="text-lg font-normal text-gray-700 lg:text-xl dark:text-gray-400">${index + 1}. ${student.name}</span>
+                <form action="/remove_student" method="post" class="ml-4">
+                    <input type="hidden" name="student_name" value="${student.name}">
+                    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded transition duration-300 ease-in-out hover:bg-red-600">Ta bort</button>
+                </form>
+            `;
+            queueList.appendChild(listItem);
+        });
+    }
+</script>
+
+{% endblock %}
